@@ -8,16 +8,13 @@ namespace BlogAPI.Configurations
     {
         public void Configure(EntityTypeBuilder<PostTagEntity> builder)
         {
-            // Устанавливаем составной ключ
             builder.HasKey(pt => new { pt.PostId, pt.TagId });
 
-            // Устанавливаем связь с PostEntity
             builder
                 .HasOne(pt => pt.Post)
                 .WithMany(p => p.PostTags)
                 .HasForeignKey(pt => pt.PostId);
 
-            // Устанавливаем связь с TagEntity
             builder
                 .HasOne(pt => pt.Tag)
                 .WithMany(t => t.PostTags)
