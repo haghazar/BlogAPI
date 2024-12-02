@@ -1,4 +1,5 @@
-﻿using BlogAPI.Models;
+﻿using BlogAPI.DTO;
+using BlogAPI.Models;
 using BlogAPI.Service;
 using Microsoft.AspNetCore.Mvc;
 
@@ -33,19 +34,34 @@ namespace BlogAPI.Controllers
         }
 
         [HttpPost]
-        public async Task<IActionResult> AddTag([FromBody] TagEntity tag)
+        public async Task<IActionResult> AddTag([FromBody] AddTagRequest request)
         {
-            await _tagService.AddTagAsync(tag);
-            return CreatedAtAction(nameof(GetTagById), new { id = tag.Id }, tag);
+            try
+            {
+                var tag = new TagEntity
+                {
+                    Name = request.Name,
+                    PostTags = []
+                };
+
+                await _tagService.AddTagAsync(tag);
+                return Ok();
+            } catch (Exception ex)
+            {
+                throw new Exception($"{ex.Message} {ex.InnerException?.Message}");
+            }
         }
 
         [HttpPut("{id}")]
-        public async Task<IActionResult> UpdateTag(Guid id, [FromBody] TagEntity tag)
+        public async Task<IActionResult> UpdateTag(Guid id, [FromBody] AddTagRequest request)
         {
-            if (id != tag.Id)
-                return BadRequest("ID mismatch");
+            if (id == null)
+                return BadRequest("not found id");
+            var existingTag = await _tagService.GetTagByIdAsync(id);
 
-            await _tagService.UpdateTagAsync(tag);
+            existingTag.Name = request.Name ?? existingTag.Name;
+            
+            await _tagService.UpdateTagAsync(existingTag);
             return NoContent();
         }
 

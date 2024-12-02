@@ -1,4 +1,5 @@
-﻿using BlogAPI.Models;
+﻿using BlogAPI.DTO;
+using BlogAPI.Models;
 using BlogAPI.Service;
 using Microsoft.AspNetCore.Mvc;
 
@@ -32,39 +33,57 @@ namespace BlogAPI.Controllers
             return Ok(post);
         }
 
-        [HttpPost]
-        public async Task<IActionResult> AddPost([FromBody] PostEntity post)
+        [HttpPost("api/add")]
+        public async Task<IActionResult> AddPost([FromBody] AddPostRequest request)
         {
-            if (post == null)
+            if (request == null)
             {
                 return BadRequest("Post is null.");
             }
 
-            // Ensure that PostTags are not null and contain valid PostId and TagId
-            if (post.PostTags == null || !post.PostTags.Any())
+            var post = new PostEntity
             {
-                return BadRequest("Post must have at least one tag.");
-            }
+                 Author = request.Author,
+                 Title = request.Title,
+                 Content = request.Content,
 
-            foreach (var postTag in post.PostTags)
-            {
-                if (postTag.PostId == Guid.Empty || postTag.TagId == Guid.Empty)
-                {
-                    return BadRequest("Both PostId and TagId must be valid.");
-                }
-            }
+            };
+
 
             await _postService.AddPostAsync(post);
             return CreatedAtAction(nameof(GetPostById), new { id = post.Id }, post);
         }
 
         [HttpPut("{id}")]
-        public async Task<IActionResult> UpdatePost(Guid id, [FromBody] PostEntity post)
+        public async Task<IActionResult> UpdatePost(Guid id, [FromBody] UpdatePostRequest request)
         {
-            if (id != post.Id)
-                return BadRequest("ID mismatch");
+            if (request == null)
+            {
+                return BadRequest("Request body is null.");
+            }
 
-            await _postService.UpdatePostAsync(post);
+            if (id == Guid.Empty)
+            {
+                return BadRequest("Invalid post ID.");
+            }
+
+            var existingPost = await _postService.GetPostByIdAsync(id);
+            if (existingPost == null)
+            {
+                return NotFound($"Post with ID {id} not found.");
+            }
+
+            existingPost.Author = request.Author ?? existingPost.Author;
+            existingPost.Title = request.Title ?? existingPost.Title;
+            existingPost.Content = request.Content ?? existingPost.Content;
+
+            if (request.TagIds != null && request.TagIds.Any())
+            {
+                // Assuming a method in your service handles updating tags
+                //await _postService.UpdateTagsForPostAsync(existingPost, request.TagIds);
+            }
+
+            await _postService.UpdatePostAsync(existingPost);
             return NoContent();
         }
 

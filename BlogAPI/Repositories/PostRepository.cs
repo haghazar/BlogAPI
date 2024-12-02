@@ -12,7 +12,6 @@ namespace BlogAPI.Repositories
             _dbContext = dbContext;
         }
 
-        // Получить все посты
         public async Task<IEnumerable<PostEntity>> GetAllPostsAsync()
         {
             return await _dbContext.Posts

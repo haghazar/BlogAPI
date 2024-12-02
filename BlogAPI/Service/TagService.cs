@@ -1,4 +1,5 @@
-﻿using BlogAPI.Models;
+﻿using BlogAPI.DTO;
+using BlogAPI.Models;
 using BlogAPI.Repositories;
 
 namespace BlogAPI.Service
