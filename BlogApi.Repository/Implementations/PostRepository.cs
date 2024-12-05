@@ -1,7 +1,7 @@
-﻿using BlogAPI.Models;
+﻿using BlogApi.Models;
 using Microsoft.EntityFrameworkCore;
 
-namespace BlogAPI.Repositories
+namespace BlogApi.Repository.Implementations
 {
     public class PostRepository
     {
@@ -12,39 +12,44 @@ namespace BlogAPI.Repositories
             _dbContext = dbContext;
         }
 
-        public async Task<IEnumerable<PostEntity>> GetAllPostsAsync()
+        public async Task<IEnumerable<Post>> GetAllPostsAsync()
         {
             return await _dbContext.Posts
-                .Include(p => p.PostTags)
-                .ThenInclude(pt => pt.Tag)
+                .Include(p => p.Tags)
+                .Where(x => !x.IsDeleted)
+                .ToListAsync();
+        }
+        public async Task<IEnumerable<Post>> GetIsDeletedPostsAsync()
+        {
+            return await _dbContext.Posts
+                .Include(p => p.Tags)
+                .Where(x => x.IsDeleted)
                 .ToListAsync();
         }
 
-        // Получить пост по ID
-        public async Task<PostEntity?> GetPostByIdAsync(Guid id)
+        public async Task<Post?> GetPostByIdAsync(int id)
         {
             return await _dbContext.Posts
-                .Include(p => p.PostTags)
-                .ThenInclude(pt => pt.Tag)
-                .FirstOrDefaultAsync(p => p.Id == id);
+                
+                .AsTracking()
+                .FirstOrDefaultAsync(x => x.Id == id);
+            
         }
 
-        // Добавить новый пост
-        public async Task AddPostAsync(PostEntity post)
+        public async Task AddPostAsync(Post post)
         {
             _dbContext.Posts.Add(post);
             await _dbContext.SaveChangesAsync();
         }
 
-        // Обновить существующий пост
-        public async Task UpdatePostAsync(PostEntity post)
+        public async Task UpdatePostAsync(Post post)
         {
             _dbContext.Posts.Update(post);
             await _dbContext.SaveChangesAsync();
         }
 
-        // Удалить пост
-        public async Task DeletePostAsync(Guid id)
+
+        public async Task DeletePostAsync(int id)
         {
             var post = await GetPostByIdAsync(id);
             if (post != null)

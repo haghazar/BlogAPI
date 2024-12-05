@@ -1,6 +1,7 @@
 
-using BlogAPI.Repositories;
-using BlogAPI.Service;
+
+using BlogApi.Repository;
+using BlogApi.Services.Extensions;
 using Microsoft.EntityFrameworkCore;
 
 namespace BlogAPI
@@ -16,12 +17,7 @@ namespace BlogAPI
             builder.Services.AddDbContext<BlogDbContext>(options =>
             options.UseNpgsql(builder.Configuration.GetConnectionString("PostgresConnection")));
 
-            builder.Services.AddScoped<PostRepository>();
-            builder.Services.AddScoped<TagRepository>();
-
-            
-            builder.Services.AddScoped<PostService>();
-            builder.Services.AddScoped<TagService>();
+            builder.Services.AddServices();
 
             builder.Services.AddControllers();
             // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
